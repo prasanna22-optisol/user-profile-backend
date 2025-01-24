@@ -14,11 +14,12 @@ export function generateToken(userId,res){
         const token=jwt.sign({userId},secret,{
             expiresIn:age
         })
+        console.log("Token generated:", token)
         res.cookie("token",token,{
-            maxAge: age,
-            httpOnly: true,
-            secure: false, // Only send over HTTPS in production
-            sameSite: "strict", // Adjust if needed
+                maxAge: age,
+                httpOnly: true,
+                secure: false, // Only send over HTTPS in production
+                sameSite: "none"
         })
     }catch(e){
         console.error("Error generating token:", e);

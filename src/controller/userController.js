@@ -1,8 +1,16 @@
+import bcrypt from "bcryptjs"
 import User from "../models/userSchema.js"
+import { ObjectId } from 'mongodb'; // Import ObjectId
 
 export const getUser=async(req,res)=>{
     try{
         const {id}=req.params
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({
+                statusCode: 400,
+                message: "Invalid ID format"
+            });
+        }
         const user=await User.findById(id)
         if(!user){
             return res.status(404).json({
@@ -30,55 +38,57 @@ export const getUser=async(req,res)=>{
         })
     }
 }
-
-export const updateUser=async(req,res)=>{
-    try{
-        const {id}=req.params
-        const updateData=req.body
-
-        if(!updateData){
-            return res.status(400).json({
-                statusCode:400,
-                message:"Please provide data to update"
-            })
-        }
-
-        const updatedUser=await User.findByIdAndUpdate(
-            id,
-            {$set:updateData},
-            {new : true , runValidators:true}
-        );
-
-        if(!updatedUser){
-            return res.status(404).json({
-                statusCode: 404,
-                message: "User not found",
-            })
-        }
-
-        return res.status(200).json({
-            statusCode: 200,
-            message: "User updated successfully",
-            data: {
-                _id: updatedUser._id,
-                fullName: updatedUser.fullName,
-                email: updatedUser.email,
-                mobileNumber: updatedUser.mobileNumber,
-                designation: updatedUser.designation,
-            },
+export const updateUser = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+  
+      // Check if updateData has any valid keys
+      if (!updateData || Object.keys(updateData).length === 0) {
+        return res.status(400).json({
+          statusCode: 400,
+          message: "Please provide data to update",
         });
-
-
+      }
+  
+      // Attempt to update the user
+      const updatedUser = await User.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true, runValidators: false } // Skipping required field validations
+      );
+  
+      // Check if user exists
+      if (!updatedUser) {
+        return res.status(404).json({
+          statusCode: 404,
+          message: "User not found",
+        });
+      }
+  
+      // Send success response
+      return res.status(200).json({
+        statusCode: 200,
+        message: "User updated successfully",
+        data: {
+          _id: updatedUser._id,
+          fullName: updatedUser.fullName,
+          email: updatedUser.email,
+          mobileNumber: updatedUser.mobileNumber,
+          designation: updatedUser.designation,
+        },
+      });
+    } catch (err) {
+      // Log and send error response
+      console.error("Error updating user:", err);
+      return res.status(500).json({
+        statusCode: 500,
+        message: "An error occurred while updating the user",
+        error: err.message,
+      });
     }
-    catch(err){
-        console.log(err);
-        return res.status(500).json({
-            statusCode: 500,
-            message: err.message,
-        });   
-    }
-}
-
+  };
+  
 export const getAllUsers=async(req,res)=>{
     try{
         const users=await User.find().select("-password")
@@ -114,6 +124,72 @@ export const deleteUser=async(req,res)=>{
             message:"User deleted successfully",
             data:deletedUser
         })
+    }
+    catch(err){
+        console.log(err);
+        return res.status(500).json({
+            statusCode: 500,
+            message: err.message,
+        });
+    }
+}
+
+export const forgotPassword=async(req,res)=>{
+    const {email}=req.body
+    try{
+        const user=await User.findOne({email})
+        if(!user){
+            return res.status(404).json({
+                statusCode:404,
+                message:"User not found"
+            })
+        }
+
+        console.log(`The password reset link was sent to the email address: ${email}`)
+
+        return res.status(200).json({
+            statusCode:200,
+            message:"Password reset link sent successfully"
+        })
+    }
+    catch(err){
+        console.log(err);
+        return res.status(500).json({
+            statusCode: 500,
+            message: err.message,
+        });
+    }
+}
+
+export const resetPassword=async(req,res)=>{
+    try{
+        const {userId,newPassword,confirmPassword}=req.body
+        if(!newPassword || !confirmPassword || newPassword!==confirmPassword){
+            return res.status(400).json({
+                statusCode:400,
+                message:"Passwords do not match"
+            })
+        }
+        if(newPassword.length<4){
+            return res.status(400).json({
+                statusCode:400,
+                message:"Password must be at least 4 characters long"
+            })
+        }
+        const hashedPassword=await bcrypt.hash(newPassword,10)
+        const updatedUser=await User.findByIdAndUpdate(userId,{password:hashedPassword},{new:true})
+
+        if(!updateUser){
+            return res.status(404).json({
+                statusCode:404,
+                message:"User not found"
+            })
+        }
+        return res.status(200).json({
+            statusCode:200,
+            message:"Password reset successfully"
+        })
+
     }
     catch(err){
         console.log(err);

@@ -30,7 +30,12 @@ export const login = async (req, res) => {
             statusCode:200,
             message:"User logged in successfully",
             data:{
-                email
+                _id:checkUser._id,
+                email,
+                fullName:checkUser.fullName,
+                mobileNumber:checkUser.mobileNumber,
+                designation:checkUser.designation,
+
             }
         })
         // your login logic here
