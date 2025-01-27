@@ -163,7 +163,6 @@ export const forgotPassword=async(req,res)=>{
         const resetToken=crypto.randomBytes(32).toString("hex")
         const resetTokenExpiry = Date.now() + 3600000000;
 
-        console.log("Reset token type at here:",typeof resetToken)
 
         user.resetPasswordToken = resetToken;
         user.resetPasswordTokenExpiry = resetTokenExpiry;
@@ -195,7 +194,6 @@ export const resetPassword=async(req,res)=>{
     try{
         const {token,newPassword,confirmPassword}=req.body
 
-        console.log("Type of token :" , typeof token)
 
         const user=await User.findOne({
             resetPasswordToken:token,
