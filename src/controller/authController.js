@@ -24,7 +24,7 @@ export const login = async (req, res) => {
                 message:"Bad credentials"
             })
         }
-        generateToken(checkUser._id,req)
+        generateToken(checkUser._id,res)
 
         return res.status(200).json({
             statusCode:200,

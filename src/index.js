@@ -1,5 +1,8 @@
 import express from "express"
 
+
+process.env.NODE_ENV==='development'
+
 import dotenv from 'dotenv'
 import {connectDB} from "./database/db.js";
 import cookieParser from "cookie-parser";

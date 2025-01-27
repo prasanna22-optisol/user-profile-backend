@@ -1,10 +1,25 @@
 import bcrypt from "bcryptjs"
 import User from "../models/userSchema.js"
-import { ObjectId } from 'mongodb'; // Import ObjectId
+import { ObjectId } from 'mongodb'; 
+import verifyToken from "../utils/verifyToken.js";
+
+
+import crypto from "crypto";
+import dotenv from "dotenv";
+import { type } from "os";
+
+dotenv.config();// Import ObjectId
 
 export const getUser=async(req,res)=>{
     try{
+        // const { success, message, decoded } = verifyToken(req);
+
+        // if (!success) {
+        //    return res.status(401).json({ error: message });
+        // }
+
         const {id}=req.params
+
         if (!ObjectId.isValid(id)) {
             return res.status(400).json({
                 statusCode: 400,
@@ -145,11 +160,26 @@ export const forgotPassword=async(req,res)=>{
             })
         }
 
-        console.log(`The password reset link was sent to the email address: ${email}`)
+        const resetToken=crypto.randomBytes(32).toString("hex")
+        const resetTokenExpiry = Date.now() + 3600000000;
+
+        console.log("Reset token type at here:",typeof resetToken)
+
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordTokenExpiry = resetTokenExpiry;
+
+        const resetMailUrl=`http://localhost:5173/reset/${resetToken}`
+        const yopMailUrl = `https://yopmail.com/en/mail/compose
+        // ?to=${email}&subject=Password%20Reset%20Request&message=${encodeURIComponent(`Click the following link to reset your password: ${resetMailUrl}`)}`;
+
+        await user.save()
+
+        console.log(`The password reset link was sent to the email address: ${yopMailUrl}`)
 
         return res.status(200).json({
             statusCode:200,
-            message:"Password reset link sent successfully"
+            message:"Password reset link sent successfully",
+            token:resetToken
         })
     }
     catch(err){
@@ -163,7 +193,22 @@ export const forgotPassword=async(req,res)=>{
 
 export const resetPassword=async(req,res)=>{
     try{
-        const {userId,newPassword,confirmPassword}=req.body
+        const {token,newPassword,confirmPassword}=req.body
+
+        console.log("Type of token :" , typeof token)
+
+        const user=await User.findOne({
+            resetPasswordToken:token,
+            resetPasswordTokenExpiry:{$gt:Date.now()}
+        })
+
+        if(!user){
+            return res.status(401).json({
+                statusCode:401,
+                message:"Password reset token expired or invalid"
+            })
+        }
+
         if(!newPassword || !confirmPassword || newPassword!==confirmPassword){
             return res.status(400).json({
                 statusCode:400,
@@ -176,8 +221,9 @@ export const resetPassword=async(req,res)=>{
                 message:"Password must be at least 4 characters long"
             })
         }
+        const userId=user._id
         const hashedPassword=await bcrypt.hash(newPassword,10)
-        const updatedUser=await User.findByIdAndUpdate(userId,{password:hashedPassword},{new:true})
+        const updatedUser=await User.findByIdAndUpdate(userId,{password:hashedPassword,resetPasswordToken:undefined,resetPasswordTokenExpiry:undefined},{new:true})
 
         if(!updateUser){
             return res.status(404).json({

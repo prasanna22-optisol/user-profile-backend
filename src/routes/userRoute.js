@@ -6,8 +6,8 @@ import { protectRoute } from '../middleware/protect.js'
 
 const userRouter=express.Router()
 
-userRouter.put('/update/:id', updateUser);
-userRouter.get("/get-user/:id",getUser)
+userRouter.put('/update/:id',protectRoute, updateUser);
+userRouter.get("/get-user/:id",protectRoute,getUser)
 userRouter.get("/all",getAllUsers)
 userRouter.delete("/delete",deleteUser);
 userRouter.post("/forgot-password",forgotPassword);

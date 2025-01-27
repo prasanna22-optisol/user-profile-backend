@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema({
     fullName: { type: String, required: [true, "Full name is required"] },
     mobileNumber: { type: String, required: [true, "Mobile number is required"] },
     designation: { type: String, required: [true, "Designation is required"] },
+    resetPasswordToken: { type: String },  // Add this field for the reset token
+    resetPasswordTokenExpiry: { type: Date },
   }, {
     timestamps: true
   });

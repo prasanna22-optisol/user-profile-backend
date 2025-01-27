@@ -9,7 +9,6 @@ const secret=process.env.SECRET
 
 const extractTokenFromCookies=(req)=>{
     const token=req.cookies?.token
-    console.log("Cookies extracted : ",req.cookies)
     return token
 }
 
@@ -17,14 +16,14 @@ const extractTokenFromCookies=(req)=>{
 export const protectRoute=async(req,res,next)=>{
     try{
         const token = extractTokenFromCookies(req)
-        console.log(token)
+        // console.log(token)
         if(!token){
             return res.status(401).json({message:"You need to login"})
         }
 
         const decoded=jwt.verify(token,secret)
 
-        console.log(decoded)
+        // console.log("decoded:",decoded)
 
 
         if (!decoded || !decoded.userId) {
@@ -45,6 +44,7 @@ export const protectRoute=async(req,res,next)=>{
             mobileNumber: user.mobileNumber,
             designation: user.designation,
         };
+
         next()
     }
     catch (err) {
