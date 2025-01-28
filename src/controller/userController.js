@@ -184,15 +184,15 @@ export const forgotPassword=async(req,res)=>{
         })
 
         const mailOptions = {
-            from: 'User Profiler', // Sender email
-            to: email, // Receiver email
+            from: 'User Profiler', 
+            to: email, 
             subject: 'Password Reset Request',
             html: `
                 <h2>Password Reset</h2>
                 <p>You requested a password reset. Click the link below to reset your password:</p>
                 <a href="${resetMailUrl}" target="_blank">${resetMailUrl}</a>
                 <p>If you did not request this, please ignore this email.</p>
-            ` // HTML content with the reset URL
+            ` 
         };
 
         await transport.sendMail(mailOptions)
