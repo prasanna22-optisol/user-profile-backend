@@ -2,7 +2,9 @@ import bcrypt from "bcryptjs"
 import User from "../models/userSchema.js"
 import { ObjectId } from 'mongodb'; 
 import verifyToken from "../utils/verifyToken.js";
+import nodemon from "nodemon";
 
+import nodemailer from "nodemailer"
 
 import crypto from "crypto";
 import dotenv from "dotenv";
@@ -172,6 +174,29 @@ export const forgotPassword=async(req,res)=>{
         // ?to=${email}&subject=Password%20Reset%20Request&message=${encodeURIComponent(`Click the following link to reset your password: ${resetMailUrl}`)}`;
 
         await user.save()
+
+        const transport=nodemailer.createTransport({
+            service:'gmail',
+            auth:{
+                user:'kristelklear200@gmail.com',
+                pass:process.env.APP_PASSWORD
+            }
+        })
+
+        const mailOptions = {
+            from: 'User Profiler', // Sender email
+            to: email, // Receiver email
+            subject: 'Password Reset Request',
+            html: `
+                <h2>Password Reset</h2>
+                <p>You requested a password reset. Click the link below to reset your password:</p>
+                <a href="${resetMailUrl}" target="_blank">${resetMailUrl}</a>
+                <p>If you did not request this, please ignore this email.</p>
+            ` // HTML content with the reset URL
+        };
+
+        await transport.sendMail(mailOptions)
+
 
         console.log(`The password reset link was sent to the email address: ${yopMailUrl}`)
 
