@@ -1,5 +1,5 @@
 import express from 'express'
-import { deleteUser, forgotPassword, getAllUsers, getUser, updateUser ,resetPassword} from '../controller/userController.js'
+import { deleteUser, forgotPassword, getAllUsers, getUser, updateUser ,resetPassword, searchUser} from '../controller/userController.js'
 import { protectRoute } from '../middleware/protect.js'
 
 
@@ -12,4 +12,5 @@ userRouter.get("/all",getAllUsers)
 userRouter.delete("/delete",deleteUser);
 userRouter.post("/forgot-password",forgotPassword);
 userRouter.patch("/reset-password",resetPassword);
+userRouter.get("/search",searchUser)
 export default userRouter

@@ -268,3 +268,43 @@ export const resetPassword=async(req,res)=>{
         });
     }
 }
+
+export const searchUser=async(req,res)=>{
+    try{
+        const {query}=req
+        const criteria={}
+        if(query.email){
+            criteria.email={
+                $regex:query.email,
+                $options:"i"
+            }
+        }
+        if(query.fullName){
+            criteria.fullName={
+                $regex:query.fullName,
+                $options:"i"
+            }
+        }
+        // if(query.designation){
+        //     criteria.designation={
+        //         $regex:query.designation,
+        //         $options:"i"
+        //     }
+        // }
+
+        const users=await User.find(criteria).select("-password")
+        return res.status(200).json({
+            statusCode:200,
+            message:"Users found",
+            data:users
+        })
+        
+    }
+    catch(err){
+        console.log(err);
+        return res.status(500).json({
+            statusCode: 500,
+            message: err.message,
+        });
+    }
+}
