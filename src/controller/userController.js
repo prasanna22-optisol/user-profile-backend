@@ -108,11 +108,24 @@ export const updateUser = async (req, res) => {
   
 export const getAllUsers=async(req,res)=>{
     try{
-        const users=await User.find().select("-password")
+        const page = parseInt(req.query.page) || 1;
+        const limit=4
+        const skip=(page-1)*limit
+        const users=await User.find().select("-password").skip(skip).limit(limit)
+        const totalUsers=await User.countDocuments()
+        const totalPages=Math.ceil(totalUsers/limit)
+
+
         return res.status(200).json({
             statusCode:200,
-            message:"All users",
-            data:users
+            message:"Users found",
+            data:[...users],
+            pagination:{
+                page,
+                totalPages,
+                totalUsers,
+                pageSize:limit
+            }
         })
     }
     catch(err){
@@ -273,6 +286,11 @@ export const searchUser=async(req,res)=>{
     try{
         const {query}=req
         const criteria={}
+
+        const page=parseInt(query.page)|| 1
+        const limit=4
+        const skip=(page-1)*limit
+
         if(query.email){
             criteria.email={
                 $regex:query.email,
@@ -285,18 +303,23 @@ export const searchUser=async(req,res)=>{
                 $options:"i"
             }
         }
-        // if(query.designation){
-        //     criteria.designation={
-        //         $regex:query.designation,
-        //         $options:"i"
-        //     }
-        // }
+        
 
-        const users=await User.find(criteria).select("-password")
+        const users=await User.find(criteria).select("-password").skip(skip).limit(limit)
+        const totalUsers=await User.countDocuments(criteria)
+        const totalPages=Math.ceil(totalUsers/limit)
+
+
         return res.status(200).json({
             statusCode:200,
             message:"Users found",
-            data:users
+            data:[...users],
+            pagination:{
+                currentPage:page,
+                totalPages,
+                totalUsers,
+                pageSize:limit
+            }
         })
         
     }
